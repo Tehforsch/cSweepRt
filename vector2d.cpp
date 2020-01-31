@@ -1,7 +1,4 @@
-struct Vec {
-    double x;
-    double y;
-};
+#include "vector2d.h"
 
 Vec newVec(double x, double y) {
     Vec v;

@@ -1,73 +1,41 @@
+#include <mpi.h>
 #include <vector>
 #include <iostream>
-
-#include "vector2d.cpp"
+#include <math.h>
+#include "mpiVars.h"
+#include "utils.h"
+#include "solve.h"
+#include "grid.h"
 
 using namespace std;
 
-struct Cell {
-    Vec pos;
-    vector<Vec> vertices;
-    vector<int> neighbours;
-    int id;
-};
-
-struct Grid {
-    std::vector<Cell> cells;
-};
-
-void connect(Cell &cell1, Cell &cell2) {
-    cell1.neighbours.push_back(cell1.id);
-    cell2.neighbours.push_back(cell1.id);
-}
-
-Grid getCartesianGrid(int numCellsOneDirection) {
-    Grid grid;
-    grid.cells = vector<Cell> {};
-    double xMin = 0.0;
-    double xMax = 1.0;
-    double yMin = 0.0;
-    double yMax = 1.0;
-    double cellWidth  = (xMax-xMin) / numCellsOneDirection;
-    double cellHeight = (yMax-yMin) / numCellsOneDirection;
-    Cell cells[numCellsOneDirection][numCellsOneDirection];
-    for (int i = 0; i < numCellsOneDirection; i++) {
-        for (int j = 0; j < numCellsOneDirection; j++) {
-            Cell cell;
-            cell.pos = newVec(0.0, 0.0);
-            cell.vertices = vector<Vec> {
-                newVec(cell.pos.x - cellWidth / 2.0, cell.pos.y - cellHeight / 2.0),
-                newVec(cell.pos.x - cellWidth / 2.0, cell.pos.y - cellHeight / 2.0),
-                newVec(cell.pos.x - cellWidth / 2.0, cell.pos.y - cellHeight / 2.0),
-                newVec(cell.pos.x - cellWidth / 2.0, cell.pos.y - cellHeight / 2.0)
-            };
-            cells[i][j] = cell;
-        }
-    }
-    for (int i = 0; i < numCellsOneDirection; i++) {
-        for (int j = 0; j < numCellsOneDirection; j++) {
-            if (i+1 < numCellsOneDirection) {
-                connect(cells[i][j], cells[i+1][j]);
-            }
-            if (j+1 < numCellsOneDirection) {
-                connect(cells[i][j], cells[i][j+1]);
-            }
-            cells[i][j].id = grid.cells.size();
-            grid.cells.push_back(cells[i][j]);
-        }
-    }
-    return grid;
-}
-
-int main() {
-    Grid grid = getCartesianGrid(10);
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 10; j++) {
-            // printf("%i %i %i %i", i, j, grid.cells[10*i+j].id, grid.cells[10*i+j].neighbours.size());
-            printf("%i", grid.cells[10*i+j].neighbours.size());
+void printGrid(Grid *grid) {
+    printf("%i", worldRank);
+    printf("LOCAL\n");
+    for (int i = 0; i < numCellsPerDirection; i++) {
+        printf("%i ", worldRank);
+        for (int j = 0; j < numCellsPerDirection; j++) {
+            printf("%zu", grid->cells[numCellsPerDirection*i+j].neighbours.size());
         }
         printf("\n");
     }
+}
+
+int numCoresPerDirection;
+int numCellsPerDirection;
+int worldRank;
+int worldSize;
+
+int main() {
+    MPI_Init(NULL, NULL);
+	MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+	MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
+    numCoresPerDirection = sqrt(worldSize);
+    numCellsPerDirection = GRID_SIZE / numCoresPerDirection;
+    Grid grid = getCartesianGrid();
+    printGrid(&grid);
+    solve(&grid);
+    MPI_Finalize();
     return 0;
 }
 
