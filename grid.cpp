@@ -3,6 +3,7 @@
 #include "mpiVars.h"
 #include "utils.h"
 #include "vector2d.h"
+#include "stdio.h"
 
 Grid getCartesianGrid() {
     Grid grid;
@@ -17,28 +18,27 @@ Grid getCartesianGrid() {
     for (int i = 0; i < numCellsPerDirection; i++) {
         for (int j = 0; j < numCellsPerDirection; j++) {
             Cell cell;
-            cell.pos = newVec(i*cellWidth, j*cellHeight);
-            cell.vertices = std::vector<Vec> {
-                newVec(cell.pos.x - cellWidth / 2.0, cell.pos.y - cellHeight / 2.0),
-                newVec(cell.pos.x + cellWidth / 2.0, cell.pos.y - cellHeight / 2.0),
-                newVec(cell.pos.x + cellWidth / 2.0, cell.pos.y + cellHeight / 2.0),
-                newVec(cell.pos.x - cellWidth / 2.0, cell.pos.y + cellHeight / 2.0)
-            };
             cells[i][j] = cell;
-            cells[i][j].id = grid.cells.size();
+            Index local = Index::fromLocal(worldRank, i, j);
+            cells[i][j].index = local;
         }
     }
     for (int i = 0; i < numCellsPerDirection; i++) {
         for (int j = 0; j < numCellsPerDirection; j++) {
-            Index local;
-            local.i = i;
-            local.j = j;
-            Index global = localToGlobal(local);
-            if ((global.i+1) < GRID_SIZE) {
-                cells[i][j].neighbours.push_back(cells[i+1][j].id);
+            Index index = Index::fromLocal(worldRank, i, j);
+            std::vector<Index> successors {index.rightNeighbour(), index.bottomNeighbour()};
+            // std::vector<Index> successors {index.rightNeighbour()};
+            std::vector<Index> predecessors {index.leftNeighbour(), index.topNeighbour()};
+            // std::vector<Index> predecessors {index.leftNeighbour()};
+            for (int k = 0; k < successors.size(); k++) {
+                if (successors[k].isInDomain()) {
+                    cells[i][j].successors.push_back(successors[k]);
+                }
             }
-            if ((global.j+1) < GRID_SIZE) {
-                cells[i][j].neighbours.push_back(cells[i][j+1].id);
+            for (int k = 0; k < predecessors.size(); k++) {
+                if (predecessors[k].isInDomain()) {
+                    cells[i][j].predecessors.push_back(predecessors[k]);
+                }
             }
             grid.cells.push_back(cells[i][j]);
         }

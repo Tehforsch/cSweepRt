@@ -10,12 +10,19 @@
 using namespace std;
 
 void printGrid(Grid *grid) {
-    printf("%i", worldRank);
-    printf("LOCAL\n");
+    printf("%i SUC\n", worldRank);
     for (int i = 0; i < numCellsPerDirection; i++) {
         printf("%i ", worldRank);
         for (int j = 0; j < numCellsPerDirection; j++) {
-            printf("%zu", grid->cells[numCellsPerDirection*i+j].neighbours.size());
+            printf("%zu", grid->cells[numCellsPerDirection*i+j].successors.size());
+        }
+        printf("\n");
+    }
+    printf("%i PRE\n", worldRank);
+    for (int i = 0; i < numCellsPerDirection; i++) {
+        printf("%i ", worldRank);
+        for (int j = 0; j < numCellsPerDirection; j++) {
+            printf("%zu", grid->cells[numCellsPerDirection*i+j].predecessors.size());
         }
         printf("\n");
     }
@@ -33,7 +40,8 @@ int main() {
     numCoresPerDirection = sqrt(worldSize);
     numCellsPerDirection = GRID_SIZE / numCoresPerDirection;
     Grid grid = getCartesianGrid();
-    printGrid(&grid);
+    // printGrid(&grid);
+    MPI_Barrier(MPI_COMM_WORLD);
     solve(&grid);
     MPI_Finalize();
     return 0;

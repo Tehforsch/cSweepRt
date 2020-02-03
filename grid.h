@@ -1,14 +1,17 @@
 #include <vector>
 #include "vector2d.h"
+#include "utils.h"
 
 #ifndef GRID
 #define GRID
 
 struct Cell {
-    Vec pos;
-    std::vector<Vec> vertices;
-    std::vector<int> neighbours;
+    std::vector<Index> predecessors;
+    std::vector<Index> successors;
     int id;
+    Index index;
+    int missingInfoCount;
+    bool solved;
 };
 
 struct Grid {

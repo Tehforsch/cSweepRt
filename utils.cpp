@@ -1,29 +1,58 @@
 #include "utils.h"
 #include "mpiVars.h"
+#include "stdio.h"
+#include "fstream"
 
-Index localToGlobal(Index local) {
-    int offsetI = worldRank / numCoresPerDirection * numCellsPerDirection;
-    int offsetJ = worldRank % numCoresPerDirection * numCellsPerDirection;
-    Index global;
-    global.i = offsetI + local.i;
-    global.j = offsetJ + local.j;
-    return global;
+Index Index::fromLocal(int core, int i, int j) {
+    int globalI = i + (core / numCoresPerDirection) * numCellsPerDirection;
+    int globalJ = j + (core % numCoresPerDirection) * numCellsPerDirection;
+    return Index::fromGlobal(globalI, globalJ);
 }
 
-int getCoreByGlobalIndex(Index index) {
-    if ((index.i < 0 || index.i >= GRID_SIZE) || (index.j < 0 || index.j >= GRID_SIZE))  {
-        return -1;
+Index Index::fromGlobal(int i, int j) {
+    Index index;
+    index.globalI = i;
+    index.globalJ = j;
+    index.localI = i % numCellsPerDirection;
+    index.localJ = j % numCellsPerDirection;
+    index.localId = index.localI * numCellsPerDirection + index.localJ;
+    index.globalId = index.globalI * GRID_SIZE + index.globalJ;
+    if (index.isInDomain()) {
+        index.core = (index.globalI / numCellsPerDirection) * numCoresPerDirection + (index.globalJ / numCellsPerDirection);
     }
-    int core;
-    int xNum = index.i / (GRID_SIZE / numCoresPerDirection);
-    int yNum = index.j / (GRID_SIZE / numCoresPerDirection);
-    return xNum * numCoresPerDirection + yNum;
+    else {
+        index.core = -1;
+    }
+    return index;
 }
 
-int getCoreById(int id) {
-    Index k;
-    k.i = id / GRID_SIZE;
-    k.j = id % GRID_SIZE;
-    return getCoreByGlobalIndex(k);
+Index Index::leftNeighbour() {
+    return Index::fromGlobal(this->globalI, this->globalJ-1);
 }
 
+Index Index::rightNeighbour() {
+    return Index::fromGlobal(this->globalI, this->globalJ+1);
+}
+
+Index Index::bottomNeighbour() {
+    return Index::fromGlobal(this->globalI+1, this->globalJ);
+}
+
+Index Index::topNeighbour() {
+    return Index::fromGlobal(this->globalI-1, this->globalJ);
+}
+
+bool Index::isInDomain() {
+    return (this->globalI >= 0 && this->globalJ >= 0 && this->globalI < GRID_SIZE && this->globalJ < GRID_SIZE);
+}
+
+bool Index::isOnThisCore() {
+    return this->core == worldRank;
+}
+
+std::ostream& operator<< (std::ostream &out, Index const& data) {
+    out << "(" << data.localI << " " << data.localJ << ")";
+    out << "(" << data.globalI << " " << data.globalJ << ")";
+    out << "|" << data.localId << " " << data.globalId << "|" << " on " << data.core;
+    return out;
+}
