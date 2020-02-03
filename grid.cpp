@@ -8,6 +8,7 @@
 Grid getCartesianGrid() {
     Grid grid;
     grid.cells = std::vector<Cell> {};
+    grid.cells.reserve(numCellsPerDirection * numCellsPerDirection);
     double xMin = 0.0;
     double xMax = 1.0;
     double yMin = 0.0;

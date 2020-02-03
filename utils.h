@@ -15,6 +15,7 @@ class Index {
         int core;
         static Index fromLocal(int core, int i, int j);
         static Index fromGlobal(int i, int j);
+        static Index fromGlobalId(int id);
         Index leftNeighbour();
         Index rightNeighbour();
         Index bottomNeighbour();

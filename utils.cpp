@@ -26,6 +26,12 @@ Index Index::fromGlobal(int i, int j) {
     return index;
 }
 
+Index Index::fromGlobalId(int id) {
+    int globalI = id / GRID_SIZE;
+    int globalJ = id % GRID_SIZE;
+    return Index::fromGlobal(globalI, globalJ);
+}
+
 Index Index::leftNeighbour() {
     return Index::fromGlobal(this->globalI, this->globalJ-1);
 }

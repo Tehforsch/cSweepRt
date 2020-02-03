@@ -16,6 +16,7 @@ struct Cell {
 
 struct Grid {
     std::vector<Cell> cells;
+    int unsolvedCount;
 };
 
 Grid getCartesianGrid();
