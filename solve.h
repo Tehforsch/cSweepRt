@@ -1,4 +1,5 @@
 #include "grid.h"
+#include "task.h"
 #include <queue>
 
 #ifndef SOLVE
@@ -6,11 +7,11 @@
 
 void solve(Grid* grid);
 void setupCounts(Grid* grid);
-std::queue<Index> initializeQueue(Grid *grid);
-void solveCell(std::queue<Index> *queue, Grid* grid, Index *toSolve);
-void readIncomingMessages(std::queue<Index> *queue, Grid* grid);
-void sendMessage(Index* succesorIndex);
-void checkSuccessorSolvable(std::queue<Index> *queue, Grid* grid, Index toSolve);
+std::queue<Task> initializeQueue(Grid *grid);
+void solveCell(std::queue<Task> *queue, Grid* grid, Task *toSolve);
+void readIncomingMessages(std::queue<Task> *queue, Grid* grid);
+void sendMessage(Task* successorTask);
+void checkSuccessorSolvable(std::queue<Task> *queue, Grid* grid, Task toSolve);
 bool solved(Grid *grid);
 
 #endif

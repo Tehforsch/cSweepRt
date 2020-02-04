@@ -18,32 +18,46 @@ Grid getCartesianGrid() {
     Cell cells[numCellsPerDirection][numCellsPerDirection];
     for (int i = 0; i < numCellsPerDirection; i++) {
         for (int j = 0; j < numCellsPerDirection; j++) {
-            Cell cell;
-            cells[i][j] = cell;
-            Index local = Index::fromLocal(worldRank, i, j);
-            cells[i][j].index = local;
+            cells[i][j] = Cell::fromLocal(i, j);
         }
     }
     for (int i = 0; i < numCellsPerDirection; i++) {
         for (int j = 0; j < numCellsPerDirection; j++) {
             Index index = Index::fromLocal(worldRank, i, j);
-            std::vector<Index> successors {index.rightNeighbour(), index.bottomNeighbour()};
-            // std::vector<Index> successors {index.rightNeighbour()};
-            std::vector<Index> predecessors {index.leftNeighbour(), index.topNeighbour()};
-            // std::vector<Index> predecessors {index.leftNeighbour()};
-            for (int k = 0; k < successors.size(); k++) {
-                if (successors[k].isInDomain()) {
-                    cells[i][j].successors.push_back(successors[k]);
-                }
-            }
-            for (int k = 0; k < predecessors.size(); k++) {
-                if (predecessors[k].isInDomain()) {
-                    cells[i][j].predecessors.push_back(predecessors[k]);
+            std::vector<Index> neighbours {index.rightNeighbour(), index.bottomNeighbour(), index.leftNeighbour(), index.topNeighbour()};
+            for (int k = 0; k < neighbours.size(); k++) {
+                if (neighbours[k].isInDomain()) {
+                    cells[i][j].neighbours.push_back(neighbours[k]);
+                    // Ugly calculation
+                    int delI = neighbours[k].globalI - index.globalI;
+                    int delJ = neighbours[k].globalJ - index.globalJ;
+                    for (int d = 0; d < NUM_DIRECTIONS; d++) {
+                        float scalarProduct = delI * DIRECTIONS[d].y + delJ * DIRECTIONS[d].x;
+                        if (scalarProduct > 0) {
+                            cells[i][j].successors[d].push_back(neighbours[k]);
+                        }
+                        else if (scalarProduct < 0) {
+                            cells[i][j].numPredecessors[d] += 1;
+                        }
+                    }
                 }
             }
             grid.cells.push_back(cells[i][j]);
         }
     }
     return grid;
+}
+
+Cell Cell::fromLocal(int i, int j) {
+    Index local = Index::fromLocal(worldRank, i, j);
+    Cell cell;
+    cell.index = local;
+    cell.numPredecessors = std::vector<int>{};
+    cell.missingInfoCount = std::vector<int>{};
+    for (int d = 0; d < NUM_DIRECTIONS; d++) {
+        cell.numPredecessors.push_back(0);
+        cell.missingInfoCount.push_back(0);
+    }
+    return cell;
 }
 

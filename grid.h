@@ -1,17 +1,21 @@
 #include <vector>
 #include "vector2d.h"
 #include "utils.h"
+#include "mpiVars.h"
 
 #ifndef GRID
 #define GRID
 
 struct Cell {
-    std::vector<Index> predecessors;
-    std::vector<Index> successors;
-    int id;
-    Index index;
-    int missingInfoCount;
-    bool solved;
+    public:
+        std::vector<int> numPredecessors;
+        std::vector<Index> successors[NUM_DIRECTIONS];
+        std::vector<Index> neighbours;
+        std::vector<int> missingInfoCount;
+        int id;
+        Index index;
+        bool solved;
+        static Cell fromLocal(int i, int j);
 };
 
 struct Grid {
