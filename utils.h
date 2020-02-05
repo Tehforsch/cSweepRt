@@ -1,6 +1,9 @@
 #include <iostream>
+
 #ifndef UTILS
 #define UTILS
+
+class Neighbour;
 
 class Index {
     public: 
@@ -16,12 +19,20 @@ class Index {
         static Index fromLocal(int core, int i, int j);
         static Index fromGlobal(int i, int j);
         static Index fromGlobalId(int id);
-        Index leftNeighbour();
-        Index rightNeighbour();
-        Index bottomNeighbour();
-        Index topNeighbour();
         bool isInDomain();
         bool isOnThisCore();
+        Neighbour leftNeighbour();
+        Neighbour rightNeighbour();
+        Neighbour bottomNeighbour();
+        Neighbour topNeighbour();
+
+};
+
+class Neighbour {
+    public:
+        Index index;
+        double flux;
+        static Neighbour fromIndex(Index index);
 };
 
 std::ostream& operator<<(std::ostream& output, const Index& data);

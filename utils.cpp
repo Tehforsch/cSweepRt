@@ -32,21 +32,25 @@ Index Index::fromGlobalId(int id) {
     return Index::fromGlobal(globalI, globalJ);
 }
 
-Index Index::leftNeighbour() {
-    return Index::fromGlobal(this->globalI, this->globalJ-1);
+Neighbour Index::leftNeighbour() {
+    return Neighbour::fromIndex(Index::fromGlobal(this->globalI, this->globalJ-1));
 }
 
-Index Index::rightNeighbour() {
-    return Index::fromGlobal(this->globalI, this->globalJ+1);
+Neighbour Index::rightNeighbour() {
+    return Neighbour::fromIndex(Index::fromGlobal(this->globalI, this->globalJ+1));
 }
 
-Index Index::bottomNeighbour() {
-    return Index::fromGlobal(this->globalI+1, this->globalJ);
+Neighbour Index::bottomNeighbour() {
+    return Neighbour::fromIndex(Index::fromGlobal(this->globalI+1, this->globalJ));
 }
 
-Index Index::topNeighbour() {
-    return Index::fromGlobal(this->globalI-1, this->globalJ);
+Neighbour Index::topNeighbour() {
+    return Neighbour::fromIndex(Index::fromGlobal(this->globalI-1, this->globalJ));
 }
+
+Neighbour Neighbour::fromIndex(Index index) {
+    return Neighbour{index, 0.0};
+};
 
 bool Index::isInDomain() {
     return (this->globalI >= 0 && this->globalJ >= 0 && this->globalI < GRID_SIZE && this->globalJ < GRID_SIZE);
