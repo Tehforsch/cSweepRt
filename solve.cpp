@@ -10,22 +10,24 @@
 #include "task.h"
 
 void calculateFluxes(Cell* cell, int direction) {
-    // double incomingFlux = 0.0;
-    // for (int i = 0; i < cell->predecessors[direction].size(); i++) {
-        // Neighbour predecessor = cell->predecessors[direction][i];
-        // incomingFlux += predecessor.flux;
-    // }
     cell->photonDensities[direction] += cell->incomingFluxes[direction];
-    cell->photonDensities[direction] -= cell->photonDensities[direction] * cell->absorption;
-    cell->photonDensities[direction] += cell->sourceFunction;
+    cell->photonDensities[direction] += cell->sourceFunction / NUM_DIRECTIONS;
+    double absorbed = cell->photonDensities[direction] * cell->absorption;
+    cell->photonDensities[direction] -= absorbed;
+    cell->absorbed += absorbed;
+    double outgoingFlux = 0.0;
+    double flux;
     for (int i = 0; i < cell->successors[direction].size(); i++) {
         Neighbour* successor = &cell->successors[direction][i];
         int delI = successor->index.globalI - cell->index.globalI;
         int delJ = successor->index.globalJ - cell->index.globalJ;
         double scalarProduct = delI * DIRECTIONS[direction].y + delJ * DIRECTIONS[direction].x;
         double faceLength = 1.0;
-        successor->flux = cell->photonDensities[direction] * scalarProduct * faceLength;
+        flux = cell->photonDensities[direction] * scalarProduct * scalarProduct * faceLength;
+        outgoingFlux += flux;
+        successor->flux = flux;
     }
+    cell->photonDensities[direction] -= outgoingFlux;
 }
 
 void solve(Grid *grid) {

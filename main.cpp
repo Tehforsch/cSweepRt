@@ -14,21 +14,41 @@ int numCellsPerDirection;
 int worldRank;
 int worldSize;
 
+void writeAbsorption(Grid* grid) {
+    FILE *fp;
+
+    fp = fopen("data", "w+");
+    for (int i = 0; i < numCellsPerDirection; i++) {
+        for (int j = 0; j < numCellsPerDirection; j++) {
+            Index index = Index::fromLocal(worldRank, i, j);
+            fprintf(fp, "%.10f ", i, j, grid->cells[index.localId].absorbed);
+        }
+        fprintf(fp, "\n");
+    }
+    fclose(fp);
+}
+
+void printLocalGrid(Grid *grid) {
+    for (int i = 0; i < numCellsPerDirection; i++) {
+        printf("%i ", worldRank);
+        for (int j = 0; j < numCellsPerDirection; j++) {
+            Index index = Index::fromLocal(worldRank, i, j);
+            printf("%.2f ", grid->cells[index.localId].absorbed * 10);
+            // double sum = 0.0;
+            // for (int d = 0; d < NUM_DIRECTIONS; d++) {
+            //     sum += grid->cells[index.localId].photonDensities[d];
+            // }
+            // printf("%.2f ", sum);
+        }
+        printf("\n");
+    }
+}
+
 void printGrid(Grid *grid) {
     MPI_Barrier(MPI_COMM_WORLD);
     for (int core = 0; core < worldSize; core++) {
         if (core == worldRank) {
-            for (int d = 0; d < NUM_DIRECTIONS; d++) {
-                printf("%i %g %g ------------------------------\n", worldRank, DIRECTIONS[d].x, DIRECTIONS[d].y);
-                for (int i = 0; i < numCellsPerDirection; i++) {
-                    printf("%i ", worldRank);
-                    for (int j = 0; j < numCellsPerDirection; j++) {
-                        Index index = Index::fromLocal(worldRank, i, j);
-                        printf("%.1f ", grid->cells[index.localId].photonDensities[d]);
-                    }
-                printf("\n");
-                }
-            }
+            printLocalGrid(grid);
         }
         MPI_Barrier(MPI_COMM_WORLD);
     }
@@ -43,8 +63,8 @@ int main() {
     numCellsPerDirection = GRID_SIZE / numCoresPerDirection;
     Grid grid = getCartesianGrid();
     solve(&grid);
-    MPI_Barrier(MPI_COMM_WORLD);
     printGrid(&grid);
+    writeAbsorption(&grid);
     MPI_Finalize();
     return 0;
 }

@@ -19,6 +19,7 @@ struct Cell {
         double absorption;
         double photonDensities[NUM_DIRECTIONS];
         double incomingFluxes[NUM_DIRECTIONS];
+        double absorbed;
 
         static Cell fromLocal(int i, int j);
 };
